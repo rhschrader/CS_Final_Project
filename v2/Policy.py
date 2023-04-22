@@ -3,12 +3,13 @@ import pickle
 import tensorflow as tf
 
 class PolicyNetwork:
-    def __init__(self, n_actions, epsilon=0.9, decay_rate=1e-6, epsilon_min=0.1, resume=False):
+    def __init__(self, n_actions, epsilon=0.9, decay_rate=1e-6, epsilon_min=0.1, log_dir = '~', resume=False):
         self.n_actions = n_actions
         self.decay_rate = decay_rate
         self.epsilon_min = epsilon_min
+        self.log_dir = log_dir
         if resume:
-            with open('logs/epsilon.pickle', 'rb') as file:
+            with open(self.log_dir + 'epsilon.pickle', 'rb') as file:
                 self.epsilon = pickle.load(file)
         else:
             self.epsilon = epsilon
@@ -39,5 +40,5 @@ class PolicyNetwork:
             self.epsilon = self.epsilon_min
 
     def save(self):
-        with open('logs/epsilon.pickle', 'wb') as file:
+        with open(self.log_dir + 'epsilon.pickle', 'wb') as file:
             pickle.dump(self.epsilon, file)

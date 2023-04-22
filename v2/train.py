@@ -4,6 +4,7 @@ import numpy as np
 #from keras import layers
 #import gym
 import pickle
+import os
 from Q_val import QNetwork
 from Environment import AtariEnv
 from Policy import PolicyNetwork
@@ -53,23 +54,26 @@ alpha = 0.01
 gamma = 0.99
 input_shape = (80, 84, 4)
 
-resume = False
+# --- Logging Filepaths ---
+log_dir = '/Users/rossschrader/Desktop/ML/CS/_Project/logs/'
+
+resume = True
 if resume:
-    Q = QNetwork(env.action_space, input_shape, alpha, gamma, name = 'Q', resume=True)
-    Q_target = QNetwork(env.action_space, input_shape, alpha, gamma, name='Q_target', resume=True)
-    policy = PolicyNetwork(env.action_space, epsilon=epsilon, resume=True)
-    with open('logs/frame_count.pickle', 'rb') as file:
+    Q = QNetwork(env.action_space, input_shape, alpha, gamma, name = log_dir + 'Q', resume=True)
+    Q_target = QNetwork(env.action_space, input_shape, alpha, gamma, name = log_dir + 'Q_target', resume=True)
+    policy = PolicyNetwork(env.action_space, epsilon=epsilon, log_dir = log_dir, resume=True)
+    with open(log_dir + 'frame_count.pickle', 'rb') as file:
         frame_count = pickle.load(file)
-    with open('logs/episode_count.pickle', 'rb') as file:
+    with open(log_dir + 'episode_count.pickle', 'rb') as file:
         episode_count = pickle.load(file)
-    with open('logs/episode_reward_history.pickle', 'rb') as file:
+    with open(log_dir + 'episode_reward_history.pickle', 'rb') as file:
         episode_reward_history = pickle.load(file)
-    with open('logs/running_reward_history.pickle', 'rb') as file:
+    with open(log_dir + 'running_reward_history.pickle', 'rb') as file:
         running_reward_history = pickle.load(file)
 else:
-    Q = QNetwork(env.action_space, input_shape, alpha, gamma, name = 'Q.keras', resume=False)
-    Q_target = QNetwork(env.action_space, input_shape, alpha, gamma, name='Q_target.keras', resume=False)
-    policy = PolicyNetwork(env.action_space, epsilon=epsilon, resume=False)
+    Q = QNetwork(env.action_space, input_shape, alpha, gamma, name = log_dir + 'Q', resume=False)
+    Q_target = QNetwork(env.action_space, input_shape, alpha, gamma, name= log_dir + 'Q_target', resume=False)
+    policy = PolicyNetwork(env.action_space, epsilon=epsilon, log_dir = log_dir, resume=False)
 
 ## training
 while running_reward < solved_reward:
@@ -113,13 +117,13 @@ while running_reward < solved_reward:
                 Q.save_model()
                 Q_target.save_model()
                 policy.save()
-                with open('logs/frame_count.pickle', 'wb') as file:
+                with open(log_dir + 'frame_count.pickle', 'wb') as file:
                     pickle.dump(frame_count, file)
-                with open('logs/episode_count.pickle', 'wb') as file:
+                with open(log_dir + 'episode_count.pickle', 'wb') as file:
                     pickle.dump(episode_count, file)
-                with open('logs/running_reward_history.pickle', 'wb') as file:
+                with open(log_dir + 'running_reward_history.pickle', 'wb') as file:
                     pickle.dump(running_reward_history, file)
-                with open('logs/episode_reward_history.pickle', 'wb') as file:
+                with open(log_dir + 'episode_reward_history.pickle', 'wb') as file:
                     pickle.dump(episode_reward_history, file)
 
 

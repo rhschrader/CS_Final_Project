@@ -94,8 +94,8 @@ class QNetwork:
         return self.model.predict(state, verbose=0)
     
     def save_model(self):
-        self.model.save('logs/' + self.name + '.keras')
-        with open('logs/' +self.name+ '_memory.pickle', 'wb') as file:
+        self.model.save(self.name + '.keras')
+        with open(self.name + '_memory.pickle', 'wb') as file:
             pickle.dump(self.memory, file)
 
     def load_model(self):
@@ -103,7 +103,7 @@ class QNetwork:
         self.model.compile(loss=keras.losses.Huber(), 
                            optimizer=keras.optimizers.legacy.RMSprop(lr=self.lr, clipnorm=1.0))
         try:
-            with open('logs/' + self.name + '_memory.pickle', 'rb') as file:
+            with open(self.name + '_memory.pickle', 'rb') as file:
                 self.memory = pickle.load(file)
         except:
             print('No memory file found')
