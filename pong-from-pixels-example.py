@@ -16,8 +16,8 @@ gamma = 0.99 # discount factor for reward
 decay_rate = 0.99 # decay factor for RMSProp leaky sum of grad^2
 
 # Config flags - video output and res
-resume = False # resume training from previous checkpoint (from save.p  file)?
-render = True # render video output?
+resume = True # resume training from previous checkpoint (from save.p  file)?
+render = False # render video output?
 
 # model initialization
 D = 75 * 80 # input dimensionality: 75x80 grid
@@ -77,6 +77,7 @@ def policy_backward(eph, epx, epdlogp):
 env = gym.make("Pong-v0", render_mode = "rgb_array")
 #env = wrappers.Monitor(env, 'tmp/pong-base', force=True) # record the game as as an mp4 file
 observation = env.reset()
+observation = observation[0] # remove the extra dimension
 prev_x = None # used in computing the difference frame
 xs,hs,dlogps,drs = [],[],[],[]
 running_reward = None
@@ -86,7 +87,7 @@ while True:
   if render: env.render()
 
   # preprocess the observation, set input to network to be difference image
-  cur_x = prepro(observation[0])
+  cur_x = prepro(observation)
   # we take the difference in the pixel input, since this is more likely to account for interesting information
   # e.g. motion
   x = cur_x - prev_x if prev_x is not None else np.zeros(D)
@@ -148,6 +149,7 @@ while True:
     if episode_number % 100 == 0: pickle.dump(model, open('save.p', 'wb'))
     reward_sum = 0
     observation = env.reset() # reset env
+    observation = observation[0] # remove the extra dimension
     prev_x = None
 
 if reward != 0: # Pong has either +1 or -1 reward exactly when game ends.
