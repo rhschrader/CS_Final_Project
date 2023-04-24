@@ -2,7 +2,9 @@ import numpy as np
 import pickle
 from DQNetwork import DQN
 from Environment import AtariEnv
-from Policy import PolicyNetwork
+from PolicyNetwork import Policy
+import time
+
 
 # --- Resume Training ---
 resume = True
@@ -53,7 +55,7 @@ log_dir = '/Users/rossschrader/Desktop/ML/CS/_Project/logs/v3/'
 if resume:
     Q = DQN(env.action_space, input_shape, alpha, gamma, name = log_dir + 'Q', resume=True)
     Q_target = DQN(env.action_space, input_shape, alpha, gamma, name = log_dir + 'Q_target', resume=True)
-    policy = PolicyNetwork(env.action_space, epsilon=epsilon, log_dir = log_dir, resume=True)
+    policy = Policy(env.action_space, epsilon=epsilon, log_dir = log_dir, resume=True)
     with open(log_dir + 'frame_count.pickle', 'rb') as file:
         frame_count = pickle.load(file)
     with open(log_dir + 'episode_count.pickle', 'rb') as file:
@@ -65,7 +67,7 @@ if resume:
 else:
     Q = DQN(env.action_space, input_shape, alpha, gamma, name = log_dir + 'Q', resume=False)
     Q_target = DQN(env.action_space, input_shape, alpha, gamma, name= log_dir + 'Q_target', resume=False)
-    policy = PolicyNetwork(env.action_space, epsilon=epsilon, log_dir = log_dir, resume=False)
+    policy = Policy(env.action_space, epsilon=epsilon, log_dir = log_dir, resume=False)
 
 ## training
 while running_reward < solved_reward:
@@ -104,8 +106,10 @@ while running_reward < solved_reward:
             # update target network
             if frame_count % update_target_step == 0:
                 Q_target.model.set_weights(Q.model.get_weights())
-                template = "running reward: {:.2f} at episode {}, frame count {}, epsilon {:.2f}"
+                template = "Running reward: {:.2f}\t Episode {}\t Frame count {}\t Epsilon {:.2f}"
                 print(template.format(running_reward, episode_count, frame_count, policy.epsilon))
+                print('Saving models...')
+                start_time = time.time()
                 Q.save_model()
                 Q_target.save_model()
                 policy.save()
@@ -117,6 +121,7 @@ while running_reward < solved_reward:
                     pickle.dump(running_reward_history, file)
                 with open(log_dir + 'episode_reward_history.pickle', 'wb') as file:
                     pickle.dump(episode_reward_history, file)
+                print('Saved in {:.2f} seconds'.format(time.time() - start_time))
 
 
 

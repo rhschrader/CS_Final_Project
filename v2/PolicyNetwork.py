@@ -2,7 +2,7 @@ import numpy as np
 import pickle
 import tensorflow as tf
 
-class PolicyNetwork:
+class Policy:
     def __init__(self, n_actions, epsilon=0.9, decay_rate=1e-6, epsilon_min=0.1, log_dir = '~', resume=False):
         self.n_actions = n_actions
         self.decay_rate = decay_rate
