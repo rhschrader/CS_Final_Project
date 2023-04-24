@@ -20,7 +20,7 @@ class PolicyNetwork:
         else:
             state_tensor = tf.convert_to_tensor(state)
             state_tensor = tf.expand_dims(state, 0)
-            action_probs = Q.predict(state_tensor)
+            action_probs = Q.model(state_tensor, training=False)
             action = tf.argmax(action_probs[0]).numpy()
         self.update_epsilon()
         return action

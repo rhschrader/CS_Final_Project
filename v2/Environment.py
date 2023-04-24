@@ -2,22 +2,22 @@ import numpy as np
 import gym
 
 class AtariEnv:
-    def __init__(self, game_name, render_mode, obs_type, full_action_space, frameskip):
+    def __init__(self, game_name, render_mode, obs_type, full_action_space, frameskip, repeat_action_probability=0.25):
         self.game = game_name
         self.render_mode = render_mode
         self.obs_type = obs_type
         self.full_action_space = full_action_space
         self.frameskip = frameskip
-        self.env = gym.make(self.game, obs_type=self.obs_type, render_mode=self.render_mode, full_action_space=self.full_action_space, frameskip=self.frameskip)
+        self.repeat_action_probability = repeat_action_probability
+        self.env = gym.make(self.game, 
+                            obs_type=self.obs_type, 
+                            render_mode=self.render_mode, 
+                            full_action_space=self.full_action_space, 
+                            frameskip=self.frameskip,
+                            repeat_action_probability=self.repeat_action_probability)
         self.action_space = self.env.action_space.n
         self.observation_space = self.env.observation_space.shape
         self.obs = []
-        self.env = gym.make(self.game, 
-                       obs_type=self.obs_type, 
-                       render_mode=self.render_mode, 
-                       full_action_space=self.full_action_space, 
-                       frameskip=self.frameskip)
-        self.action_space = self.env.action_space.n
     
     # Random Starts
     def reset(self):

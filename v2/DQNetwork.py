@@ -4,7 +4,7 @@ from tensorflow import keras
 from keras import layers
 import pickle
 
-class QNetwork:
+class DQN:
     def __init__(self, n_actions, input_shape, alpha=0.01, gamma=0.9, name = None, resume=False):
         self.lr = alpha
         self.gamma = gamma
@@ -55,17 +55,11 @@ class QNetwork:
         for key in self.memory.keys():
             del self.memory[key][0]
 
-    def fit(self, Q_target, batch_size=32):
+    def train(self, Q_target, batch_size=32):
+        # Sample mini-batch from the memory
         states, actions, rewards, next_states, dones = self.experience_replay(batch_size)
-        #target = self.model.predict(states)
-        #target_next = self.model.predict(next_states)
-       #target_val = rewards + self.gamma * np.amax(target_next, axis=1) * (1 - dones)
-        #target[np.arange(batch_size), actions] = target_val
-        #self.model.fit(states, target, verbose=0)
 
-        states = tf.convert_to_tensor(states)
-        next_states = tf.convert_to_tensor(next_states)
-
+        # Get the Q values for the next states
         future_Q_val = Q_target.predict(next_states)
 
         # Q value = reward + discount factor * max future reward --- 1d array
@@ -73,19 +67,30 @@ class QNetwork:
 
         # If final frame set the last value to -1
         updated_q_values = updated_q_values * (1 - dones) - dones 
-        updated_q_values = tf.expand_dims(updated_q_values, 1)
 
         # Create a mask so we only calculate loss on the updated Q-values
         masks = tf.one_hot(actions, self.n_actions)
-        updated_q_values = tf.multiply(updated_q_values, masks)
-        
 
+        with tf.GradientTape() as tape:
+            # Train the model on the states and updated Q-values
+            q_values = self.model(states)
+
+            # Apply the masks to the Q-values to get the Q-value for action taken
+            q_action = tf.reduce_sum(tf.multiply(q_values, masks), axis=1)
+            # Calculate loss between new Q-value and old Q-value
+            loss = self.model.loss(updated_q_values, q_action)
+
+        # Backpropagation
+        grads = tape.gradient(loss, self.model.trainable_variables)
+        self.model.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
+        
+        """
         # get the Q-value for the action we actually took
         q_vals = self.predict(states)
         # apply the masks to the Q-values to get the Q-value for action, reducing to 1d array
         q_vals = tf.multiply(q_vals, masks)
 
-        self.model.fit(states, updated_q_values, verbose=0, batch_size=batch_size)
+        self.model.fit(states, updated_q_values, verbose=0, batch_size=batch_size)"""
     
     def update_target(self, Q_target):
         Q_target.model.set_weights(self.model.get_weights())

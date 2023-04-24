@@ -1,25 +1,24 @@
 import numpy as np
-#import tensorflow as tf
-#from tensorflow import keras
-#from keras import layers
-#import gym
 import pickle
-import os
-from Q_val import QNetwork
+from DQNetwork import DQN
 from Environment import AtariEnv
 from Policy import PolicyNetwork
 
+# --- Resume Training ---
+resume = True
+
 # --- Define Game Environment ---
-game = 'ALE/Atlantis-v5'
-render_mode = "rgb_array"
-obs_type = "grayscale"
+game = 'ALE/Atlantis-v5' # 'ALE/Atlantis-v5' or 'Atlantis-v4' or 'Atlantis-v0'
+render_mode = "rgb_array" # "human" or "rgb_array"
+obs_type = "grayscale" # "grayscale" or "ram"
 full_action_space = False
-frameskip = 4
+frameskip = 1
+repeat_action_probability = 0.0
 # make environment
-env = AtariEnv(game, render_mode, obs_type, full_action_space, frameskip)
+env = AtariEnv(game, render_mode, obs_type, full_action_space, frameskip, repeat_action_probability)
 
 # --- Define Hyperparameters ---
-alpha = 0.01
+alpha = 0.00025
 gamma = 0.99
 input_shape = (80, 84, 4)
 batch_size = 32
@@ -32,7 +31,7 @@ random_frames = 50000
 ## parameters
 max_steps = 10000
 running_reward = 0
-solved_reward = 30000
+solved_reward = 50000
 frame_count = 0
 random_frames = 50000
 update_after_frames = 4
@@ -44,23 +43,16 @@ running_reward_history = []
 
 # --- Define Policy ---
 ## parameters
-epsilon = 0.9
+epsilon = 1.0
 epsilon_decay = 1e-6
 min_epsilon = 0.1
 
-# --- Define DQN Agent ---
-## parameters
-alpha = 0.01
-gamma = 0.99
-input_shape = (80, 84, 4)
-
 # --- Logging Filepaths ---
-log_dir = '/Users/rossschrader/Desktop/ML/CS/_Project/logs/'
+log_dir = '/Users/rossschrader/Desktop/ML/CS/_Project/logs/v3/'
 
-resume = True
 if resume:
-    Q = QNetwork(env.action_space, input_shape, alpha, gamma, name = log_dir + 'Q', resume=True)
-    Q_target = QNetwork(env.action_space, input_shape, alpha, gamma, name = log_dir + 'Q_target', resume=True)
+    Q = DQN(env.action_space, input_shape, alpha, gamma, name = log_dir + 'Q', resume=True)
+    Q_target = DQN(env.action_space, input_shape, alpha, gamma, name = log_dir + 'Q_target', resume=True)
     policy = PolicyNetwork(env.action_space, epsilon=epsilon, log_dir = log_dir, resume=True)
     with open(log_dir + 'frame_count.pickle', 'rb') as file:
         frame_count = pickle.load(file)
@@ -71,8 +63,8 @@ if resume:
     with open(log_dir + 'running_reward_history.pickle', 'rb') as file:
         running_reward_history = pickle.load(file)
 else:
-    Q = QNetwork(env.action_space, input_shape, alpha, gamma, name = log_dir + 'Q', resume=False)
-    Q_target = QNetwork(env.action_space, input_shape, alpha, gamma, name= log_dir + 'Q_target', resume=False)
+    Q = DQN(env.action_space, input_shape, alpha, gamma, name = log_dir + 'Q', resume=False)
+    Q_target = DQN(env.action_space, input_shape, alpha, gamma, name= log_dir + 'Q_target', resume=False)
     policy = PolicyNetwork(env.action_space, epsilon=epsilon, log_dir = log_dir, resume=False)
 
 ## training
@@ -107,7 +99,7 @@ while running_reward < solved_reward:
         if frame_count % update_after_frames == 0 and len(Q.memory['done']) > batch_size:
             # train network
             
-            Q.fit(Q_target, batch_size)
+            Q.train(Q_target, batch_size)
 
             # update target network
             if frame_count % update_target_step == 0:
