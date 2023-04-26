@@ -27,7 +27,7 @@ batch_size = 32
 memory_size = 100000
 update_step = 4
 update_target_step = 10000
-random_frames = 50000
+random_frames = 100000
 
 # --- Define Training ---
 ## parameters
@@ -50,7 +50,7 @@ epsilon_decay = 1e-6
 min_epsilon = 0.1
 
 # --- Logging Filepaths ---
-log_dir = '/Users/rossschrader/Desktop/ML/CS/_Project/logs/v3/'
+log_dir = '/Users/rossschrader/Desktop/ML/CS/_Project/logs/v4/'
 
 if resume:
     print('Resuming training - Starting to load models...')
@@ -74,7 +74,7 @@ else:
 
 ## training
 while episode_count < 401:
-    state = env.reset()
+    state, obs = env.reset()
 
     episode_reward = 0
 
@@ -88,18 +88,19 @@ while episode_count < 401:
             action = policy.get_action(state, Q)
         
         # take action
-        next_state, reward, done = env.step(action, state)
-        if next_state.shape != (84, 80, 4):
-            next_state = np.zeros((84, 80, 4))
-            print('ERROR: next_state.shape != (84, 80, 4)')
+        next_state, next_obs, reward, done = env.step(action, state)
+        #if next_state.shape != (84,80,4):
+        #    next_state = np.zeros(84,80,4)
+        #    print('ERROR: next_state.shape != (80, 84, 4)')
 
         episode_reward += reward
 
         # store experience
-        Q.remember(state, action, reward, next_state, done)
+        Q.remember(obs, action, reward, next_obs, done)
 
         # update state
         state = next_state
+        obs = next_obs
 
         if frame_count % update_after_frames == 0 and len(Q.memory['done']) > batch_size:
             # train network
