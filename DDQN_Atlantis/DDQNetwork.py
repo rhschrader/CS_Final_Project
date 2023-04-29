@@ -93,6 +93,7 @@ class DDQN:
         action = np.argmax(q_vals_next_state, axis=1)
 
         q_next_state_target = Q_target.model(next_states).numpy()
+        dones = dones.numpy()
 
         updates = rewards + self.gamma * q_next_state_target[batch_indexes, action]
 
