@@ -1,4 +1,4 @@
-# CS_Final_Project
+# Reinforcement Learning for Atlantis
 Using reinforcement learning to play the Atari Atlantis game
 
 ## File Breakdown
